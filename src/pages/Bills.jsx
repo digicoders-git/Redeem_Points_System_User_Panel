@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { Camera, Info } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function Bills() {
   const [bills, setBills] = useState([]);
-  // API required fields: billName, billNumber, billImage, date, amount
   const [form, setForm] = useState({ billName: "", billNumber: "", date: "", amount: "" });
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [msg, setMsg] = useState({ text: "", type: "" });
+  const [loadingBills, setLoadingBills] = useState(true);
 
   const load = () =>
-    api.get("/bills/my-bills").then(({ data }) => setBills(data.bills || []));
+    api.get("/bills/my-bills")
+      .then(({ data }) => setBills(data.bills || []))
+      .finally(() => setLoadingBills(false));
 
   useEffect(() => { load(); }, []);
 
@@ -27,7 +29,6 @@ export default function Bills() {
     e.preventDefault();
     if (!image) return;
     setUploading(true);
-    setMsg({ text: "", type: "" });
     try {
       const billImage = await toBase64(image);
       await api.post("/bills/upload", {
@@ -37,13 +38,13 @@ export default function Bills() {
         amount: Number(form.amount),
         billImage,
       });
-      setMsg({ text: "Bill uploaded successfully!", type: "success" });
+      Swal.fire({ icon: "success", title: "Bill Uploaded!", text: "Bill uploaded successfully!", timer: 1500, showConfirmButton: false });
       setForm({ billName: "", billNumber: "", date: "", amount: "" });
       setImage(null);
       e.target.reset();
       load();
     } catch (err) {
-      setMsg({ text: err.response?.data?.message || "Upload failed", type: "error" });
+      Swal.fire({ icon: "error", title: "Upload Failed", text: err.response?.data?.message || "Upload failed" });
     } finally {
       setUploading(false);
     }
@@ -61,11 +62,6 @@ export default function Bills() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-5">
         <h3 className="font-semibold text-gray-700 mb-3">Upload New Bill</h3>
-        {msg.text && (
-          <div className={`text-sm rounded-xl px-4 py-2 mb-3 text-center ${msg.type === "success" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-500"}`}>
-            {msg.text}
-          </div>
-        )}
         <form onSubmit={upload} className="space-y-3">
           <input
             placeholder="Bill Name"
@@ -112,7 +108,12 @@ export default function Bills() {
       </div>
 
       <div className="space-y-3">
-        {bills.length === 0 && (
+        {loadingBills && (
+          <div className="flex justify-center py-10">
+            <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        {!loadingBills && bills.length === 0 && (
           <p className="text-center text-gray-400 text-sm py-8">No bills uploaded yet</p>
         )}
         {bills.map((b) => (

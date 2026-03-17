@@ -4,12 +4,12 @@ import { Info } from "lucide-react";
 
 export default function Redemptions() {
   const [redemptions, setRedemptions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // populated field is "rewardId" not "reward"
-    api.get("/rewards/user/my-redemptions").then(({ data }) =>
-      setRedemptions(data.redemptions || [])
-    );
+    api.get("/rewards/user/my-redemptions")
+      .then(({ data }) => setRedemptions(data.redemptions || []))
+      .finally(() => setLoading(false));
   }, []);
 
   const statusStyle = {
@@ -23,7 +23,12 @@ export default function Redemptions() {
       <h2 className="text-xl font-bold text-gray-800 mb-4">My Redemptions</h2>
 
       <div className="space-y-3">
-        {redemptions.length === 0 && (
+        {loading && (
+          <div className="flex justify-center py-10">
+            <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        {!loading && redemptions.length === 0 && (
           <p className="text-center text-gray-400 text-sm py-8">No redemptions yet</p>
         )}
         {redemptions.map((r) => (

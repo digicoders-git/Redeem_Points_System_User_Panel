@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { Coins, LogOut } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [edit, setEdit] = useState(false);
-  // API update accepts: name, mobile
   const [form, setForm] = useState({});
-  const [msg, setMsg] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     api.get("/users/profile").then(({ data }) => {
@@ -18,25 +18,48 @@ export default function Profile() {
 
   const save = async (e) => {
     e.preventDefault();
+    setSaving(true);
     try {
       const { data } = await api.put("/users/profile", form);
       setProfile(data.user);
       setEdit(false);
-      setMsg("Profile updated!");
-      setTimeout(() => setMsg(""), 2000);
+      Swal.fire({ icon: "success", title: "Profile Updated!", timer: 1500, showConfirmButton: false });
     } catch (e) {
-      setMsg(e.response?.data?.message || "Update failed");
+      Swal.fire({ icon: "error", title: "Update Failed", text: e.response?.data?.message || "Update failed" });
+    } finally {
+      setSaving(false);
     }
   };
 
   const logout = async () => {
+    const result = await Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#7c3aed",
+      cancelButtonColor: "#d1d5db",
+      confirmButtonText: "Yes, Logout",
+    });
+    if (!result.isConfirmed) return;
     await api.post("/users/logout").catch(() => {});
     localStorage.clear();
+    await Swal.fire({
+      icon: "success",
+      title: "Logged Out!",
+      text: "You have been logged out successfully.",
+      timer: 1500,
+      showConfirmButton: false,
+    });
     window.location.reload();
   };
 
   if (!profile)
-    return <div className="flex items-center justify-center h-64 text-gray-400">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
 
   return (
     <div className="px-4 py-6 pb-24">
@@ -50,10 +73,6 @@ export default function Profile() {
           <Coins size={16} /> {profile.walletPoints || 0} Points
         </div>
       </div>
-
-      {msg && (
-        <div className="bg-green-50 text-green-600 text-sm text-center rounded-xl px-4 py-2 mb-4">{msg}</div>
-      )}
 
       {edit ? (
         <form onSubmit={save} className="space-y-3">
@@ -70,7 +89,9 @@ export default function Profile() {
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
           />
           <div className="flex gap-3">
-            <button type="submit" className="flex-1 bg-violet-600 text-white py-3 rounded-xl font-semibold text-sm">Save</button>
+            <button type="submit" disabled={saving} className="flex-1 bg-violet-600 text-white py-3 rounded-xl font-semibold text-sm disabled:opacity-60">
+              {saving ? <span className="flex justify-center"><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" /></span> : "Save"}
+            </button>
             <button type="button" onClick={() => setEdit(false)} className="flex-1 border border-gray-300 text-gray-600 py-3 rounded-xl font-semibold text-sm">Cancel</button>
           </div>
         </form>

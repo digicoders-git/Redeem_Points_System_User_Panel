@@ -1,28 +1,43 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { Coins, Target } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function Rewards() {
   const [rewards, setRewards] = useState([]);
   const [wallet, setWallet] = useState(0);
   const [applying, setApplying] = useState(null);
-  const [msg, setMsg] = useState({ text: "", type: "" });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get("/rewards/user/all").then(({ data }) => setRewards(data.rewards || []));
-    api.get("/users/profile").then(({ data }) => setWallet(data.user?.walletPoints || 0));
+    Promise.all([
+      api.get("/rewards/user/all"),
+      api.get("/users/profile"),
+    ]).then(([r, p]) => {
+      setRewards(r.data.rewards || []);
+      setWallet(p.data.user?.walletPoints || 0);
+    }).finally(() => setLoading(false));
   }, []);
 
   const apply = async (rewardId) => {
+    const result = await Swal.fire({
+      title: "Redeem Reward?",
+      text: "Are you sure you want to redeem this reward?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#7c3aed",
+      cancelButtonColor: "#d1d5db",
+      confirmButtonText: "Yes, Redeem!",
+    });
+    if (!result.isConfirmed) return;
     setApplying(rewardId);
-    setMsg({ text: "", type: "" });
     try {
       await api.post("/rewards/user/apply", { rewardId });
-      setMsg({ text: "Redemption request submitted!", type: "success" });
+      Swal.fire({ icon: "success", title: "Redemption Submitted!", timer: 1500, showConfirmButton: false });
       const { data } = await api.get("/users/profile");
       setWallet(data.user?.walletPoints || 0);
     } catch (e) {
-      setMsg({ text: e.response?.data?.message || "Failed to apply", type: "error" });
+      Swal.fire({ icon: "error", title: "Failed", text: e.response?.data?.message || "Failed to apply" });
     } finally {
       setApplying(null);
     }
@@ -41,14 +56,13 @@ export default function Rewards() {
 
       <h2 className="text-xl font-bold text-gray-800 mb-4">Available Rewards</h2>
 
-      {msg.text && (
-        <div className={`text-sm rounded-xl px-4 py-2 mb-4 text-center ${msg.type === "success" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-500"}`}>
-          {msg.text}
-        </div>
-      )}
-
       <div className="space-y-3">
-        {rewards.length === 0 && (
+        {loading && (
+          <div className="flex justify-center py-10">
+            <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        {!loading && rewards.length === 0 && (
           <p className="text-center text-gray-400 text-sm py-8">No rewards available</p>
         )}
         {rewards.map((r) => (
