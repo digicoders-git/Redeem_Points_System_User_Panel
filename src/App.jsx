@@ -19,7 +19,7 @@ export default function App() {
   }
 
   const pages = {
-    bills: <Bills />,
+    bills: <Bills onNavigate={setTab} />,
     rewards: <Rewards />,
     redemptions: <Redemptions />,
     profile: <Profile />,

@@ -4,7 +4,7 @@ import { Gift } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function Login({ onSwitch }) {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ mobile: "", password: "" });
   const [loading, setLoading] = useState(false);
 
   const submit = async (e) => {
@@ -45,10 +45,9 @@ export default function Login({ onSwitch }) {
 
         <form onSubmit={submit} className="space-y-4">
           <input
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder="Mobile Number"
+            value={form.mobile}
+            onChange={(e) => setForm({ ...form, mobile: e.target.value })}
             required
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
           />
