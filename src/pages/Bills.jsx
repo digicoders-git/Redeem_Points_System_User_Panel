@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
-import { Camera, Info, Gift, Award, ChevronRight } from "lucide-react";
+import { Camera, Info, Gift, Award, ChevronRight, Coins } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function Bills({ onNavigate }) {
@@ -87,19 +87,22 @@ export default function Bills({ onNavigate }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Header */}
-      <div className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-6 shadow-lg">
-        <div className="flex justify-between items-center mb-2">
+      <div className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 pt-6 pb-8 shadow-lg">
+        <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Cable Sansar</h1>
-          <span className="text-sm bg-white/20 px-3 py-1 rounded-full">Partner</span>
+          <span className="text-xs bg-white/20 px-3 py-1 rounded-full font-medium">Partner</span>
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-white/80 text-sm">Welcome back,</p>
-            <p className="text-xl font-semibold">{userName ? `${userName}! 👋` : "👋"}</p>
+            <p className="text-white/70 text-xs mb-0.5">Welcome back,</p>
+            <p className="text-xl font-bold">{userName ? `${userName} 👋` : "👋"}</p>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-2xl">
-            <p className="text-xs text-white/80">Your Points</p>
-            <p className="text-2xl font-bold">{userPoints}</p>
+          <div className="bg-white/15 border border-white/20 backdrop-blur-sm px-5 py-3 rounded-2xl flex items-center gap-3">
+            <Coins size={22} className="text-yellow-300" />
+            <div>
+              <p className="text-[11px] text-white/70 leading-none mb-1">Your Points</p>
+              <p className="text-2xl font-extrabold leading-none">{userPoints}</p>
+            </div>
           </div>
         </div>
       </div>
