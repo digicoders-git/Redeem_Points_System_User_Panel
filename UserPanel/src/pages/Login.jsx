@@ -1,23 +1,33 @@
 import { useState } from "react";
 import api from "../api/axios";
 import { Gift } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function Login({ onSwitch }) {
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [err, setErr] = useState("");
+  const [form, setForm] = useState({ mobile: "", password: "" });
   const [loading, setLoading] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setErr("");
     try {
       const { data } = await api.post("/users/login", form);
       localStorage.setItem("userToken", data.token);
       localStorage.setItem("userInfo", JSON.stringify(data.user));
+      await Swal.fire({
+        icon: "success",
+        title: "Login Successful",
+        text: "Welcome back!",
+        timer: 1500,
+        showConfirmButton: false,
+      });
       window.location.reload();
     } catch (e) {
-      setErr(e.response?.data?.message || "Login failed");
+      Swal.fire({
+        icon: "error",
+        title: "Login Failed",
+        text: e.response?.data?.message || "Login failed",
+      });
     } finally {
       setLoading(false);
     }
@@ -33,18 +43,11 @@ export default function Login({ onSwitch }) {
           <p className="text-gray-500 text-sm mt-1">Login to your account</p>
         </div>
 
-        {err && (
-          <div className="bg-red-50 text-red-600 text-sm rounded-xl px-4 py-2 mb-4 text-center">
-            {err}
-          </div>
-        )}
-
         <form onSubmit={submit} className="space-y-4">
           <input
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder="Mobile Number"
+            value={form.mobile}
+            onChange={(e) => setForm({ ...form, mobile: e.target.value })}
             required
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
           />

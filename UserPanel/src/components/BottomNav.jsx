@@ -16,13 +16,13 @@ export default function BottomNav({ active, setActive }) {
             key={t.id}
             onClick={() => setActive(t.id)}
             className={`flex-1 flex flex-col items-center py-3 gap-0.5 transition-colors ${
-              active === t.id ? "text-violet-600" : "text-gray-400"
+              active === t.id ? "text-[#0f4089]" : "text-gray-400"
             }`}
           >
             <span className="mb-0.5">{t.icon}</span>
             <span className="text-[10px] font-semibold">{t.label}</span>
             {active === t.id && (
-              <span className="w-1 h-1 rounded-full bg-violet-600 mt-0.5" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f97316] mt-0.5" />
             )}
           </button>
         ))}
