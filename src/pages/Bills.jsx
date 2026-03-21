@@ -134,71 +134,64 @@ export default function Bills({ onNavigate }) {
           </div>
         </div>
 
-        {/* Upload Purchase Slip Card */}
-        <div className="bg-white rounded-[24px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.04)] mb-5 border border-gray-100">
-          <div className="flex gap-4">
+        {/* Upload Bill & Amount Form */}
+        <div className="bg-white rounded-[24px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.04)] mb-8 border border-gray-100 flex flex-col gap-5">
+          <div className="flex gap-4 items-center">
             {/* Phone Illustration */}
-            <div className="w-[85px] h-[110px] bg-[#E3EBFB] rounded-2xl p-[6px] relative shadow-inner flex-shrink-0">
+            <div className="w-[70px] h-[90px] bg-[#E3EBFB] rounded-2xl p-[6px] relative shadow-inner flex-shrink-0">
               <div className="w-full h-full bg-white rounded-xl flex flex-col items-center justify-center border-2 border-[#184F9E] shadow-sm relative overflow-hidden">
                 <div className="w-6 h-1 bg-gray-200 rounded-full mt-1 mb-2 absolute top-1"></div>
-                <div className="w-8 h-8 rounded bg-[#FBEED7] flex items-center justify-center mt-3 text-[#f97316] font-bold text-lg">C</div>
-                <div className="w-10 h-1 bg-gray-100 mt-2 rounded"></div>
-                <div className="w-8 h-1 bg-gray-100 mt-1 rounded"></div>
+                <div className="w-6 h-6 rounded bg-[#FBEED7] flex items-center justify-center mt-2 text-[#f97316] font-bold text-sm">C</div>
+                <div className="w-8 h-1 bg-gray-100 mt-2 rounded"></div>
+                <div className="w-6 h-1 bg-gray-100 mt-1 rounded"></div>
 
                 {/* Plus Badge */}
-                <div className="absolute -right-2 -bottom-2 w-8 h-8 bg-[#f97316] text-white rounded-full border-2 border-white flex items-center justify-center translate-x-[-14px] translate-y-[-14px] shadow-sm">
-                  <Plus size={16} strokeWidth={4} />
+                <div className="absolute -right-2 -bottom-2 w-6 h-6 bg-[#f97316] text-white rounded-full border-2 border-white flex items-center justify-center translate-x-[-12px] translate-y-[-10px] shadow-sm">
+                  <Plus size={14} strokeWidth={4} />
                 </div>
               </div>
             </div>
 
             <div className="flex-1 flex flex-col justify-center">
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Upload Purchase Slip</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Upload Purchase</h3>
               <p className="text-[13px] text-gray-500 leading-relaxed max-w-[180px]">
-                Upload your purchase slip to earn points!
+                Earn points for your bills!
               </p>
             </div>
           </div>
 
-          <div className="mt-5 border-2 border-dashed border-[#f97316]/30 bg-[#f97316]/5 rounded-xl hover:bg-[#f97316]/10 transition relative">
-            <label className="cursor-pointer w-full h-full flex items-center justify-center py-3 px-4">
-              {file ? (
-                <span className="text-[#f97316] font-bold text-[15px] truncate px-2">{file.name}</span>
-              ) : (
-                <span className="text-[#f97316] font-bold text-[15px]">Select Purchase Slip</span>
-              )}
-              <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
-            </label>
-          </div>
-        </div>
+          <form onSubmit={upload} className="flex flex-col gap-4">
+            <div className="border-2 border-dashed border-[#f97316]/30 bg-[#f97316]/5 rounded-xl hover:bg-[#f97316]/10 transition relative">
+              <label className="cursor-pointer w-full h-full flex items-center justify-center py-3 px-4 min-h-[50px]">
+                {file ? (
+                  <span className="text-[#f97316] font-bold text-[14px] truncate px-2">{file.name}</span>
+                ) : (
+                  <span className="text-[#f97316] font-bold text-[14px]">Select Purchase Slip</span>
+                )}
+                <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
+              </label>
+            </div>
 
-        {/* Total Amount Spent Form */}
-        <div className="bg-white rounded-[24px] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.04)] mb-8 border border-gray-100">
-          <label className="text-[15px] font-semibold text-gray-800 mb-3 block">Total Amount Spent</label>
-
-          <form onSubmit={upload}>
-            <div className="relative mb-2">
+            <div className="relative">
               <input
                 type="number"
-                placeholder="0"
+                placeholder="Total Amount Spent"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
-                className="w-full border-2 border-gray-100 rounded-[16px] px-5 py-3.5 text-lg font-medium text-gray-800 focus:outline-none focus:border-[#f97316]/50 bg-white shadow-inner pr-14"
+                className="w-full border-2 border-gray-100 rounded-[16px] px-5 py-3.5 text-[15px] font-medium text-gray-800 focus:outline-none focus:border-[#f97316]/50 bg-white shadow-inner pr-14"
               />
               <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[#8c9fba] font-bold text-sm">
                 INR
               </span>
             </div>
 
-            <p className="text-[12px] text-gray-400 mb-5 ml-1 font-medium">Submit to earn points</p>
-
             <button
               type="submit"
               disabled={uploading || !file || !amount}
               className="w-full bg-[#f97316] hover:bg-[#eb6a10] active:bg-[#db620c] text-white font-bold text-[16px] py-[14px] rounded-[16px] shadow-[0_5px_15px_rgba(249,115,22,0.3)] transition-all disabled:opacity-50 disabled:shadow-none"
             >
-              {uploading ? "Submitting..." : "Submit"}
+              {uploading ? "Submitting..." : "Submit to earn points"}
             </button>
           </form>
         </div>
@@ -266,7 +259,7 @@ export default function Bills({ onNavigate }) {
                 className="w-full bg-white rounded-[16px] p-4 border border-gray-100 shadow-sm hover:shadow-md transition flex items-center justify-between"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl">🧾</div>
+                  <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl text-gray-500 font-bold">₹</div>
                   <div className="text-left">
                     <p className="text-sm font-bold text-gray-800">₹{b.amount}</p>
                     <p className="text-[11px] text-gray-400">{new Date(b.createdAt).toLocaleDateString()}</p>
@@ -347,14 +340,12 @@ export default function Bills({ onNavigate }) {
 
             <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-safe shadow-[0_-5px_20px_rgba(0,0,0,0.03)]">
               {selectedBill.billImage ? (
-                <a
-                  href={selectedBill.billImage}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-center w-full bg-[#1a4187] hover:bg-[#123168] text-white font-bold py-4 rounded-xl shadow-md transition-colors"
-                >
-                  View Original Bill ↗
-                </a>
+                  <a
+                    href={selectedBill.billImage}
+                    className="flex items-center justify-center w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-4 rounded-xl shadow-sm transition-colors"
+                  >
+                    Download Original Base ↗
+                  </a>
               ) : (
                 <button
                   disabled
@@ -386,7 +377,7 @@ export default function Bills({ onNavigate }) {
                   <img
                     src={selectedReward.rewardImage}
                     alt={selectedReward.rewardName}
-                    className="w-full h-full object-contain mix-blend-multiply drop-shadow-lg cursor-zoom-in active:scale-95 transition-transform"
+                    className="w-full h-full object-contain drop-shadow-lg cursor-zoom-in active:scale-95 transition-transform"
                     onClick={() => setFullScreenImage(selectedReward.rewardImage)}
                   />
                 ) : (

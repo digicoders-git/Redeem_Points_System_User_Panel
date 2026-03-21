@@ -104,7 +104,7 @@ export default function Rewards() {
                     <img 
                       src={r.rewardImage} 
                       alt={r.rewardName} 
-                      className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-300" 
+                      className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" 
                     />
                   ) : (
                     <Gift size={40} className="text-[#1a4187]/30" />
@@ -146,7 +146,7 @@ export default function Rewards() {
                 <img 
                   src={selectedReward.rewardImage} 
                   alt={selectedReward.rewardName} 
-                  className="w-full h-full object-contain mix-blend-multiply drop-shadow-lg cursor-zoom-in active:scale-95 transition-transform" 
+                  className="w-full h-full object-contain drop-shadow-lg cursor-zoom-in active:scale-95 transition-transform" 
                   onClick={() => setFullScreenImage(selectedReward.rewardImage)}
                 />
               ) : (
