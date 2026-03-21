@@ -213,13 +213,13 @@ export default function Bills({ onNavigate }) {
                 <button
                   key={r._id}
                   onClick={() => setSelectedReward(r)}
-                  className="bg-white rounded-[20px] p-4 min-w-[140px] border border-gray-100 shadow-[0_4px_15px_rgb(0,0,0,0.03)] flex flex-col items-center flex-shrink-0 snap-start active:scale-[0.98] transition-all"
+                  className="bg-white rounded-[20px] p-4 min-w-[170px] border border-gray-100 shadow-[0_4px_15px_rgb(0,0,0,0.03)] flex flex-col items-center flex-shrink-0 snap-start active:scale-[0.98] transition-all"
                 >
-                  <div className="w-24 h-24 bg-gray-50 flex items-center justify-center rounded-xl mb-3 overflow-hidden">
+                  <div className="w-36 h-36 bg-gray-50 flex items-center justify-center rounded-xl mb-3 overflow-hidden">
                     {r.rewardImage ? (
                       <img src={r.rewardImage} alt={r.rewardName} className="w-full h-full object-contain" />
                     ) : (
-                      <Gift className="text-gray-300" size={40} />
+                      <Gift className="text-gray-300" size={60} />
                     )}
                   </div>
                   <h4 className="text-[14px] font-bold text-gray-800 mb-1 w-full truncate text-center">{r.rewardName}</h4>
