@@ -18,6 +18,7 @@ export default function Redemptions() {
     pending: "bg-amber-100 text-amber-700 border-amber-200",
     approved: "bg-green-100 text-green-700 border-green-200",
     rejected: "bg-red-100 text-red-600 border-red-200",
+    delivered: "bg-blue-100 text-blue-700 border-blue-200",
   };
 
   return (
@@ -154,10 +155,10 @@ export default function Redemptions() {
             className="w-full h-full object-contain max-w-full max-h-full"
           />
           <button 
-            className="absolute top-6 right-6 text-white bg-white/10 p-3 rounded-full hover:bg-white/20 transition-colors backdrop-blur-sm"
+            className="absolute top-6 left-6 text-white bg-white/10 p-3 rounded-full hover:bg-white/20 transition-colors backdrop-blur-sm flex items-center justify-center"
             onClick={(e) => { e.stopPropagation(); setFullScreenImage(null); }}
           >
-            ✕
+            <ArrowLeft size={24} />
           </button>
         </div>
       )}

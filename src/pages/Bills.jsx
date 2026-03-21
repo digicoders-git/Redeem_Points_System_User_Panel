@@ -446,10 +446,10 @@ export default function Bills({ onNavigate }) {
             className="w-full h-full object-contain max-w-full max-h-full"
           />
           <button 
-            className="absolute top-6 right-6 text-white bg-white/10 p-3 rounded-full hover:bg-white/20 transition-colors backdrop-blur-sm"
+            className="absolute top-6 left-6 text-white bg-white/10 p-3 rounded-full hover:bg-white/20 transition-colors backdrop-blur-sm flex items-center justify-center"
             onClick={(e) => { e.stopPropagation(); setFullScreenImage(null); }}
           >
-            ✕
+            <ArrowLeft size={24} />
           </button>
         </div>
       )}
