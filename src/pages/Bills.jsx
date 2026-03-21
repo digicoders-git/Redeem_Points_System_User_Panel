@@ -298,7 +298,7 @@ export default function Bills({ onNavigate }) {
               <h2 className="font-bold text-lg text-gray-800 flex-1">Bill Details</h2>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#F5F7FA]">
+            <div className="flex-1 overflow-y-auto p-6 pb-28 space-y-4 bg-[#F5F7FA]">
               <div className="bg-white rounded-[20px] p-5 shadow-sm border border-gray-100 flex justify-between items-center">
                 <span className="text-sm text-gray-500 font-medium">Amount</span>
                 <span className="font-extrabold text-gray-900 text-xl">₹{selectedBill.amount}</span>
@@ -329,6 +329,18 @@ export default function Bills({ onNavigate }) {
                 <div className="bg-red-50/50 rounded-[20px] p-5 border border-red-100">
                   <p className="text-xs text-red-500/70 font-bold mb-1 uppercase tracking-wider">Rejection Reason</p>
                   <p className="text-sm text-red-600 font-semibold leading-relaxed">{selectedBill.rejectionReason}</p>
+                </div>
+              )}
+
+              {selectedBill.billImage && (
+                <div className="bg-white rounded-[20px] p-4 shadow-sm border border-gray-100">
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-3">Bill Image</p>
+                  <img
+                    src={selectedBill.billImage}
+                    alt="Bill"
+                    className="w-full h-48 rounded-xl object-cover cursor-zoom-in active:scale-95 transition-transform"
+                    onClick={() => setFullScreenImage(selectedBill.billImage)}
+                  />
                 </div>
               )}
             </div>
