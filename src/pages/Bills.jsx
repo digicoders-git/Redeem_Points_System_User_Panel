@@ -100,7 +100,7 @@ export default function Bills({ onNavigate }) {
               <span className="text-[#0f4089] font-extrabold text-xl">C</span>
               <span className="w-2 h-2 bg-[#f97316] rounded-full absolute ml-4 mt-4"></span>
             </div>
-            <h1 className="text-white font-bold text-lg tracking-wide">Cable Sansar Partner App</h1>
+            <h1 className="text-white font-bold text-lg tracking-wide">CS Partner App</h1>
           </div>
           <div 
             onClick={() => onNavigate("profile")}
