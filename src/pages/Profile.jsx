@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
-import { Coins, LogOut, Loader2, User } from "lucide-react";
+import { Coins, LogOut, Loader2, User, Camera } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function Profile() {
@@ -12,9 +12,28 @@ export default function Profile() {
   useEffect(() => {
     api.get("/users/profile").then(({ data }) => {
       setProfile(data.user);
-      setForm({ name: data.user.name, mobile: data.user.mobile });
+      setForm({
+        name: data.user.name,
+        mobile: data.user.mobile,
+        profilePhoto: data.user.profilePhoto || "",
+      });
     });
   }, []);
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        Swal.fire({ icon: "error", title: "File too large", text: "Image must be under 2MB" });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm({ ...form, profilePhoto: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const save = async (e) => {
     e.preventDefault();
@@ -79,8 +98,29 @@ export default function Profile() {
 
       <div className="px-5 -mt-16 relative z-20">
         <div className="bg-white rounded-[32px] p-6 flex flex-col items-center shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 mb-6">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#0f4089] to-[#1a4187] flex items-center justify-center text-white text-4xl font-extrabold shadow-lg shadow-blue-900/20 mb-4 border-4 border-white transform -translate-y-12">
-            {profile.name?.[0]?.toUpperCase()}
+          <div className="relative transform -translate-y-12 mb-4">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#0f4089] to-[#1a4187] flex items-center justify-center text-white text-4xl font-extrabold shadow-lg shadow-blue-900/20 border-4 border-white overflow-hidden">
+              {(edit ? form.profilePhoto : profile.profilePhoto) ? (
+                <img
+                  src={edit ? form.profilePhoto : profile.profilePhoto}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                profile.name?.[0]?.toUpperCase()
+              )}
+            </div>
+            {edit && (
+              <label className="absolute bottom-0 right-0 bg-[#f97316] p-2 rounded-full text-white cursor-pointer shadow-md border-2 border-white hover:bg-[#eb6a10] transition-colors">
+                <Camera size={16} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                />
+              </label>
+            )}
           </div>
           
           <div className="text-center -mt-8">
@@ -138,7 +178,14 @@ export default function Profile() {
               </div>
             </div>
             <div className="p-5 pt-0 mt-2">
-              <button onClick={() => setEdit(true)} className="w-full bg-[#E3EBFB] text-[#0f4089] border border-[#0f4089]/10 py-3.5 rounded-xl text-[15px] font-bold hover:bg-[#d0ddf5] transition active:scale-[0.98]">
+              <button onClick={() => {
+                setForm({
+                  name: profile.name,
+                  mobile: profile.mobile,
+                  profilePhoto: profile.profilePhoto || "",
+                });
+                setEdit(true);
+              }} className="w-full bg-[#E3EBFB] text-[#0f4089] border border-[#0f4089]/10 py-3.5 rounded-xl text-[15px] font-bold hover:bg-[#d0ddf5] transition active:scale-[0.98]">
                 Edit Profile Info
               </button>
             </div>
