@@ -6,10 +6,12 @@ import Swal from "sweetalert2";
 export default function Login({ onSwitch }) {
   const [form, setForm] = useState({ mobile: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
     try {
       const { data } = await api.post("/users/login", form);
       localStorage.setItem("userToken", data.token);
@@ -23,10 +25,12 @@ export default function Login({ onSwitch }) {
       });
       window.location.reload();
     } catch (e) {
+      const errorMsg = e.response?.data?.message || "Invalid Login Credentials";
+      setError(errorMsg);
       Swal.fire({
         icon: "error",
         title: "Login Failed",
-        text: e.response?.data?.message || "Login failed",
+        text: errorMsg,
       });
     } finally {
       setLoading(false);
@@ -95,6 +99,12 @@ export default function Login({ onSwitch }) {
                 className="bg-transparent w-full text-[14px] text-[#4a1c6a] placeholder-[#b28ece] outline-none font-medium"
               />
             </div>
+
+            {error && (
+              <p className="text-red-500 text-sm text-center font-medium mt-1 mb-1">
+                {error}
+              </p>
+            )}
 
             <div className="pt-[14px]">
               <button
