@@ -1,6 +1,6 @@
 {
   "name": "Cable Sansar Partner App",
-  "short_name": "Cable Sansar",
+  "short_name": "CS Partner",
   "description": "Redeem points and manage bills for Cable Sansar Partner Apps",
   "start_url": "/",
   "display": "standalone",
