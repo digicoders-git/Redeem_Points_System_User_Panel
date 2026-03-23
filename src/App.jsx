@@ -12,13 +12,18 @@ import { Download } from "lucide-react";
 export default function App() {
   const token = localStorage.getItem("userToken");
   const [authMode, setAuthMode] = useState("login");
-  const [tab, setTab] = useState("bills");
-  const [installPrompt, setInstallPrompt] = useState(null);
+  const [tab, setTab] = useState(() => localStorage.getItem("userTab") || "bills");
+
+  const handleTab = (t) => { localStorage.setItem("userTab", t); setTab(t); };
+  const [installPrompt, setInstallPrompt] = useState(() => window.__installPrompt || null);
 
   useEffect(() => {
     const handler = (e) => { e.preventDefault(); setInstallPrompt(e); };
     window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => setInstallPrompt(null));
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+    };
   }, []);
 
   const handleInstall = async () => {
@@ -35,7 +40,7 @@ export default function App() {
   }
 
   const pages = {
-    bills: <Bills onNavigate={setTab} />,
+    bills: <Bills onNavigate={handleTab} />,
     rewards: <Rewards />,
     redemptions: <Redemptions />,
     profile: <Profile />,
@@ -45,7 +50,7 @@ export default function App() {
     <PullToRefresh>
       <div className="max-w-lg mx-auto min-h-screen bg-[#F5F7FA] font-sans relative pb-safe">
         {pages[tab]}
-        <BottomNav active={tab} setActive={setTab} />
+        <BottomNav active={tab} setActive={handleTab} />
         {installPrompt && (
           <button
             onClick={handleInstall}
