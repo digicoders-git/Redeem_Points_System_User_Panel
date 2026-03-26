@@ -16,6 +16,9 @@ export default function Bills({ onNavigate }) {
   const [selectedBill, setSelectedBill] = useState(null);
   const [selectedReward, setSelectedReward] = useState(null);
   const [fullScreenImage, setFullScreenImage] = useState(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const openReward = (r) => { setSelectedReward(r); setActiveImageIndex(0); };
 
   const loadProfile = () =>
     api.get("/users/profile").then(({ data }) => {
@@ -202,25 +205,31 @@ export default function Bills({ onNavigate }) {
             <h3 className="text-[#0f4089] text-xl font-bold mb-4 px-1">Redeem Your Points</h3>
 
             <div className="flex overflow-x-auto gap-4 pb-4 -mx-1 px-1 snap-x no-scrollbar">
-              {rewards.map((r) => (
-                <button
-                  key={r._id}
-                  onClick={() => setSelectedReward(r)}
-                  className="bg-white rounded-[20px] p-4 min-w-[170px] border border-gray-100 shadow-[0_4px_15px_rgb(0,0,0,0.03)] flex flex-col items-center flex-shrink-0 snap-start active:scale-[0.98] transition-all"
-                >
-                  <div className="w-36 h-36 bg-gray-50 flex items-center justify-center rounded-xl mb-3 overflow-hidden">
-                    {r.rewardImage ? (
-                      <img src={r.rewardImage} alt={r.rewardName} className="w-full h-full object-contain" />
-                    ) : (
-                      <Gift className="text-gray-300" size={60} />
-                    )}
-                  </div>
-                  <h4 className="text-[14px] font-bold text-gray-800 mb-1 w-full truncate text-center">{r.rewardName}</h4>
-                  <p className="text-[14px] font-bold">
-                    <span className="text-red-500">{r.pointsRequired}</span> <span className="text-gray-400 text-xs">Points</span>
-                  </p>
-                </button>
-              ))}
+              {rewards.map((r) => {
+                const images = r.rewardImages?.length > 0 ? r.rewardImages : r.rewardImage ? [r.rewardImage] : [];
+                return (
+                  <button
+                    key={r._id}
+                    onClick={() => openReward(r)}
+                    className="bg-white rounded-[20px] p-4 min-w-[170px] border border-gray-100 shadow-[0_4px_15px_rgb(0,0,0,0.03)] flex flex-col items-center flex-shrink-0 snap-start active:scale-[0.98] transition-all"
+                  >
+                    <div className="w-36 h-36 bg-gray-50 flex items-center justify-center rounded-xl mb-3 overflow-hidden relative">
+                      {images.length > 0 ? (
+                        <img src={images[0]} alt={r.rewardName} className="w-full h-full object-contain" />
+                      ) : (
+                        <Gift className="text-gray-300" size={60} />
+                      )}
+                      {images.length > 1 && (
+                        <span className="absolute bottom-1 right-1 bg-black/50 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">{images.length} pics</span>
+                      )}
+                    </div>
+                    <h4 className="text-[14px] font-bold text-gray-800 mb-1 w-full truncate text-center">{r.rewardName}</h4>
+                    <p className="text-[14px] font-bold">
+                      <span className="text-red-500">{r.pointsRequired}</span> <span className="text-gray-400 text-xs">Points</span>
+                    </p>
+                  </button>
+                );
+              })}
             </div>
 
             <div className="mt-2 flex justify-center">
@@ -359,79 +368,86 @@ export default function Bills({ onNavigate }) {
         )}
 
         {/* Gift Full View Modal */}
-        {selectedReward && (
-          <div className="fixed inset-0 bg-white z-[60] flex flex-col animate-in slide-in-from-bottom-4 duration-200">
-            <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100 bg-white">
-              <button
-                onClick={() => setSelectedReward(null)}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 transition-colors text-gray-600"
-              >
-                <ArrowLeft size={20} />
-              </button>
-              <h2 className="font-bold text-lg text-gray-800 flex-1">Gift Details</h2>
-            </div>
+        {selectedReward && (() => {
+          const images = selectedReward.rewardImages?.length > 0 ? selectedReward.rewardImages : selectedReward.rewardImage ? [selectedReward.rewardImage] : [];
+          return (
+            <div className="fixed inset-0 bg-white z-[60] flex flex-col animate-in slide-in-from-bottom-4 duration-200">
+              <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100 bg-white">
+                <button onClick={() => setSelectedReward(null)} className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 transition-colors text-gray-600">
+                  <ArrowLeft size={20} />
+                </button>
+                <h2 className="font-bold text-lg text-gray-800 flex-1">Gift Details</h2>
+              </div>
 
-            <div className="flex-1 overflow-y-auto pb-24">
-              <div className="w-full bg-gray-50 p-8 flex items-center justify-center aspect-square max-h-[40vh]">
-                {selectedReward.rewardImage ? (
-                  <img
-                    src={selectedReward.rewardImage}
-                    alt={selectedReward.rewardName}
-                    className="w-full h-full object-contain drop-shadow-lg cursor-zoom-in active:scale-95 transition-transform"
-                    onClick={() => setFullScreenImage(selectedReward.rewardImage)}
-                  />
+              <div className="flex-1 overflow-y-auto pb-24">
+                {/* Image Gallery */}
+                <div className="w-full bg-gray-50 flex items-center justify-center aspect-square max-h-[42vh] relative overflow-hidden">
+                  {images.length > 0 ? (
+                    <>
+                      <img
+                        src={images[activeImageIndex]}
+                        alt={selectedReward.rewardName}
+                        className="w-full h-full object-contain p-6 drop-shadow-lg cursor-zoom-in active:scale-95 transition-transform"
+                        onClick={() => setFullScreenImage(images[activeImageIndex])}
+                      />
+                      {images.length > 1 && (
+                        <>
+                          <button onClick={() => setActiveImageIndex((activeImageIndex - 1 + images.length) % images.length)} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg transition">‹</button>
+                          <button onClick={() => setActiveImageIndex((activeImageIndex + 1) % images.length)} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg transition">›</button>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <Gift size={80} className="text-violet-300" />
+                  )}
+                </div>
+
+                {/* Thumbnail strip */}
+                {images.length > 1 && (
+                  <div className="flex gap-2 justify-center px-4 py-3 bg-gray-50 border-b border-gray-100 overflow-x-auto no-scrollbar">
+                    {images.map((img, i) => (
+                      <button key={i} onClick={() => setActiveImageIndex(i)} className={`w-12 h-12 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${i === activeImageIndex ? "border-[#0f4089] scale-105" : "border-gray-200 opacity-60"}`}>
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="px-5 pt-5">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">{selectedReward.rewardName}</h1>
+                  <p className="text-gray-500 text-sm mb-5 leading-relaxed">
+                    {selectedReward.description || "Redeem this exciting gift by spending your earned points!"}
+                  </p>
+                  <div className="bg-[#F5F7FA] border border-gray-100 rounded-2xl p-4 flex justify-between items-center mb-5 shadow-inner">
+                    <div>
+                      <p className="text-[11px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Required</p>
+                      <p className="text-2xl font-extrabold text-[#0f4089]">{selectedReward.pointsRequired} <span className="text-sm font-medium text-gray-500">pts</span></p>
+                    </div>
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                      <Coins size={24} className="text-yellow-400" />
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center px-2 py-3 border-t border-gray-100">
+                    <span className="text-sm text-gray-500 font-medium">Your Current Balance</span>
+                    <span className="font-bold text-gray-800">{userPoints} pts</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-safe">
+                {userPoints >= selectedReward.pointsRequired ? (
+                  <button onClick={() => applyReward(selectedReward._id)} disabled={applying === selectedReward._id} className="w-full bg-gradient-to-r from-[#0f4089] to-[#1a4187] active:scale-[0.98] text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex justify-center items-center gap-2">
+                    {applying === selectedReward._id ? <><Loader2 size={20} className="animate-spin" /> Processing...</> : <><Gift size={20} /> Redeem Now</>}
+                  </button>
                 ) : (
-                  <Gift size={80} className="text-violet-300" />
+                  <button disabled className="w-full bg-red-50 text-red-500 font-bold py-4 rounded-2xl flex justify-center items-center gap-2 border border-red-100">
+                    Need {selectedReward.pointsRequired - userPoints} more points
+                  </button>
                 )}
               </div>
-
-              <div className="px-5 pt-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">{selectedReward.rewardName}</h1>
-                <p className="text-gray-500 text-sm mb-6 leading-relaxed">
-                  {selectedReward.description || "Redeem this exciting gift by spending your earned points!"}
-                </p>
-
-                <div className="bg-[#F5F7FA] border border-gray-100 rounded-2xl p-4 flex justify-between items-center mb-6 shadow-inner">
-                  <div>
-                    <p className="text-[11px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Required</p>
-                    <p className="text-2xl font-extrabold text-[#0f4089]">{selectedReward.pointsRequired} <span className="text-sm font-medium text-gray-500">pts</span></p>
-                  </div>
-                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
-                    <Coins size={24} className="text-yellow-400" />
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center px-2 py-3 border-t border-gray-100">
-                  <span className="text-sm text-gray-500 font-medium">Your Current Balance</span>
-                  <span className="font-bold text-gray-800">{userPoints} pts</span>
-                </div>
-              </div>
             </div>
-
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-safe">
-              {userPoints >= selectedReward.pointsRequired ? (
-                <button
-                  onClick={() => applyReward(selectedReward._id)}
-                  disabled={applying === selectedReward._id}
-                  className="w-full bg-gradient-to-r from-[#0f4089] to-[#1a4187] active:scale-[0.98] text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex justify-center items-center gap-2"
-                >
-                  {applying === selectedReward._id ? (
-                    <><Loader2 size={20} className="animate-spin" /> Processing...</>
-                  ) : (
-                    <><Gift size={20} /> Redeem Now</>
-                  )}
-                </button>
-              ) : (
-                <button
-                  disabled
-                  className="w-full bg-red-50 text-red-500 font-bold py-4 rounded-2xl flex justify-center items-center gap-2 border border-red-100"
-                >
-                  Need {selectedReward.pointsRequired - userPoints} more points
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Full Screen Image Modal */}

@@ -1,13 +1,30 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
-import { Coins, LogOut, Loader2, User, Camera } from "lucide-react";
+import { Coins, LogOut, Loader2, User, Camera, ChevronDown, ChevronUp, Shield } from "lucide-react";
 import Swal from "sweetalert2";
+
+const getTier = (points) => {
+  if (points >= 5000) return { label: "Platinum", color: "bg-cyan-50 text-cyan-600 border-cyan-200", emoji: "💎" };
+  if (points >= 2000) return { label: "Gold", color: "bg-yellow-50 text-yellow-600 border-yellow-200", emoji: "🥇" };
+  if (points >= 500) return { label: "Silver", color: "bg-gray-100 text-gray-600 border-gray-300", emoji: "🥈" };
+  return { label: "Bronze", color: "bg-orange-50 text-orange-500 border-orange-200", emoji: "🥉" };
+};
+
+const TERMS = [
+  "Points are earned on every approved bill submission.",
+  "Points can be redeemed for rewards available in the catalog.",
+  "Redemption requests are subject to admin approval.",
+  "Cable Sansar reserves the right to modify point values at any time.",
+  "Points have no cash value and cannot be transferred.",
+  "Fraudulent bill submissions will result in account deactivation.",
+];
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [edit, setEdit] = useState(false);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
     api.get("/users/profile").then(({ data }) => {
@@ -125,7 +142,13 @@ export default function Profile() {
           
           <div className="text-center -mt-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-1">{profile.name}</h2>
-            <p className="text-gray-500 font-medium text-[15px] mb-4">{profile.email}</p>
+            <p className="text-gray-500 font-medium text-[15px] mb-3">{profile.email}</p>
+            
+            {(() => { const tier = getTier(profile.walletPoints || 0); return (
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border mb-3 ${tier.color}`}>
+                {tier.emoji} {tier.label} Member
+              </span>
+            ); })()}
             
             <div className="inline-flex items-center gap-2 bg-[#F5F7FA] text-[#0f4089] font-bold px-6 py-2.5 rounded-2xl border border-gray-100 shadow-inner">
               <Coins size={20} className="text-[#f97316]" /> 
@@ -191,6 +214,32 @@ export default function Profile() {
             </div>
           </div>
         )}
+
+        {/* Terms & Conditions */}
+        <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 mb-4 overflow-hidden">
+          <button
+            onClick={() => setShowTerms(!showTerms)}
+            className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-[#E3EBFB] rounded-xl flex items-center justify-center">
+                <Shield size={16} className="text-[#0f4089]" />
+              </div>
+              <span className="font-bold text-gray-800 text-[15px]">Terms & Conditions</span>
+            </div>
+            {showTerms ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+          </button>
+          {showTerms && (
+            <div className="px-5 pb-5 space-y-3">
+              {TERMS.map((t, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-[#E3EBFB] text-[#0f4089] text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                  <p className="text-sm text-gray-600 leading-relaxed">{t}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <button onClick={logout} className="w-full bg-red-50 border border-red-100 text-red-600 py-4 rounded-[20px] text-[15px] font-bold hover:bg-red-100 transition flex justify-center items-center gap-2 active:scale-[0.98]">
           <LogOut size={18} strokeWidth={2.5} /> Log Out

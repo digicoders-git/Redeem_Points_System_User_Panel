@@ -1,12 +1,13 @@
 import { useState } from "react";
 import api from "../api/axios";
-import { Gift, Phone, Lock } from "lucide-react";
+import { Gift, Phone, Lock, Eye, EyeOff } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function Login({ onSwitch }) {
   const [form, setForm] = useState({ mobile: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -89,15 +90,18 @@ export default function Login({ onSwitch }) {
             </div>
 
             <div className="flex items-center bg-[#f1e5fb] rounded-[14px] px-4 py-[13px] shadow-[inset_0_1px_3px_rgba(0,0,0,0.02)]">
-              <Lock className="h-5 w-5 text-[#a479cc] mr-[10px]" />
+              <Lock className="h-5 w-5 text-[#a479cc] mr-[10px] shrink-0" />
               <input
-                type="password"
+                type={showPwd ? "text" : "password"}
                 placeholder="Password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
                 className="bg-transparent w-full text-[14px] text-[#4a1c6a] placeholder-[#b28ece] outline-none font-medium"
               />
+              <button type="button" onClick={() => setShowPwd(!showPwd)} className="ml-2 text-[#a479cc] shrink-0">
+                {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
 
             {error && (

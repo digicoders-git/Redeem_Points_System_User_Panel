@@ -11,14 +11,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Auto logout on 401/403
+// Auto logout only on 401 (invalid/expired token)
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    const status = err.response?.status;
-    if (status === 401 || status === 403) {
+    if (err.response?.status === 401) {
       localStorage.removeItem("userToken");
       localStorage.removeItem("userInfo");
+      localStorage.removeItem("userTab");
       window.location.reload();
     }
     return Promise.reject(err);
