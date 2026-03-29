@@ -7,8 +7,6 @@ import Rewards from "./pages/Rewards";
 import Redemptions from "./pages/Redemptions";
 import BottomNav from "./components/BottomNav";
 import PullToRefresh from "./components/PullToRefresh";
-import IOSInstallPrompt from "./components/IOSInstallPrompt";
-import { Download } from "lucide-react";
 
 export default function App() {
   const token = localStorage.getItem("userToken");
@@ -16,23 +14,14 @@ export default function App() {
   const [tab, setTab] = useState(() => localStorage.getItem("userTab") || "bills");
 
   const handleTab = (t) => { localStorage.setItem("userTab", t); setTab(t); };
-  const [installPrompt, setInstallPrompt] = useState(() => window.__installPrompt || null);
 
+  // Capture install prompt globally for Android — Profile page will use window.__installPrompt
   useEffect(() => {
-    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); };
+    const handler = (e) => { e.preventDefault(); window.__installPrompt = e; };
     window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", () => setInstallPrompt(null));
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
-    };
+    window.addEventListener("appinstalled", () => { window.__installPrompt = null; });
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
-
-  const handleInstall = async () => {
-    if (!installPrompt) return;
-    installPrompt.prompt();
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === "accepted") setInstallPrompt(null);
-  };
 
   if (!token) {
     return authMode === "login"
@@ -49,18 +38,9 @@ export default function App() {
 
   return (
     <PullToRefresh>
-      <IOSInstallPrompt />
       <div className="max-w-lg mx-auto min-h-screen bg-[#F5F7FA] font-sans relative pb-safe">
         {pages[tab]}
         <BottomNav active={tab} setActive={handleTab} />
-        {installPrompt && (
-          <button
-            onClick={handleInstall}
-            className="fixed bottom-20 right-4 z-50 flex items-center gap-2 bg-[#0f4089] hover:bg-[#1a4187] text-white text-[13px] font-bold px-5 py-3 rounded-full shadow-[0_5px_15px_rgba(15,64,137,0.3)] transition active:scale-[0.98]"
-          >
-            <Download size={14} /> Install App
-          </button>
-        )}
       </div>
     </PullToRefresh>
   );

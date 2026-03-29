@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
-import { Coins, LogOut, Loader2, User, Camera, ChevronDown, ChevronUp, Shield } from "lucide-react";
+import { Coins, LogOut, Loader2, User, Camera, ChevronDown, ChevronUp, Shield, Download, Share } from "lucide-react";
 import Swal from "sweetalert2";
 
 const getTier = (points) => {
@@ -10,14 +10,8 @@ const getTier = (points) => {
   return { label: "Bronze", color: "bg-orange-50 text-orange-500 border-orange-200", emoji: "🥉" };
 };
 
-const TERMS = [
-  "Points are earned on every approved bill submission.",
-  "Points can be redeemed for rewards available in the catalog.",
-  "Redemption requests are subject to admin approval.",
-  "Cable Sansar reserves the right to modify point values at any time.",
-  "Points have no cash value and cannot be transferred.",
-  "Fraudulent bill submissions will result in account deactivation.",
-];
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
@@ -25,17 +19,29 @@ export default function Profile() {
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [terms, setTerms] = useState([]);
+  const [installPrompt, setInstallPrompt] = useState(() => window.__installPrompt || null);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
 
   useEffect(() => {
     api.get("/users/profile").then(({ data }) => {
       setProfile(data.user);
-      setForm({
-        name: data.user.name,
-        mobile: data.user.mobile,
-        profilePhoto: data.user.profilePhoto || "",
-      });
+      setForm({ name: data.user.name, mobile: data.user.mobile, profilePhoto: data.user.profilePhoto || "" });
     });
+    api.get("/terms").then(({ data }) => setTerms(data.terms || []));
+    // Listen for prompt in case it fires after mount
+    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); window.__installPrompt = e; };
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => setInstallPrompt(null));
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
+
+  const handleAndroidInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === "accepted") { setInstallPrompt(null); window.__installPrompt = null; }
+  };
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
@@ -140,20 +146,26 @@ export default function Profile() {
             )}
           </div>
           
-          <div className="text-center -mt-8">
+          <div className="text-center -mt-8 w-full">
             <h2 className="text-2xl font-bold text-gray-900 mb-1">{profile.name}</h2>
             <p className="text-gray-500 font-medium text-[15px] mb-3">{profile.email}</p>
-            
+
+            {/* Tier badge — separate line */}
             {(() => { const tier = getTier(profile.walletPoints || 0); return (
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border mb-3 ${tier.color}`}>
-                {tier.emoji} {tier.label} Member
-              </span>
+              <div className="flex justify-center mb-3">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${tier.color}`}>
+                  {tier.emoji} {tier.label} Member
+                </span>
+              </div>
             ); })()}
-            
-            <div className="inline-flex items-center gap-2 bg-[#F5F7FA] text-[#0f4089] font-bold px-6 py-2.5 rounded-2xl border border-gray-100 shadow-inner">
-              <Coins size={20} className="text-[#f97316]" /> 
-              <span className="text-lg">{profile.walletPoints || 0}</span> 
-              <span className="text-gray-500 text-sm font-semibold">Points</span>
+
+            {/* Points — separate line */}
+            <div className="flex justify-center">
+              <div className="inline-flex items-center gap-2 bg-[#F5F7FA] text-[#0f4089] font-bold px-6 py-2.5 rounded-2xl border border-gray-100 shadow-inner">
+                <Coins size={20} className="text-[#f97316]" />
+                <span className="text-lg">{profile.walletPoints || 0}</span>
+                <span className="text-gray-500 text-sm font-semibold">Points</span>
+              </div>
             </div>
           </div>
         </div>
@@ -231,15 +243,67 @@ export default function Profile() {
           </button>
           {showTerms && (
             <div className="px-5 pb-5 space-y-3">
-              {TERMS.map((t, i) => (
-                <div key={i} className="flex items-start gap-3">
+              {terms.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-2">No terms available</p>
+              )}
+              {terms.map((t, i) => (
+                <div key={t._id} className="flex items-start gap-3">
                   <span className="w-5 h-5 rounded-full bg-[#E3EBFB] text-[#0f4089] text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                  <p className="text-sm text-gray-600 leading-relaxed">{t}</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">{t.text}</p>
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        {/* Install App Button */}
+        {!isStandalone() && (
+          <div className="mb-4">
+            {/* Android */}
+            {installPrompt && (
+              <button
+                onClick={handleAndroidInstall}
+                className="w-full bg-[#0f4089] text-white py-4 rounded-[20px] text-[15px] font-bold flex justify-center items-center gap-2 active:scale-[0.98] transition shadow-md mb-3"
+              >
+                <Download size={18} /> Install App
+              </button>
+            )}
+            {/* iOS */}
+            {isIOS() && (
+              <>
+                <button
+                  onClick={() => setShowIOSGuide(!showIOSGuide)}
+                  className="w-full bg-[#0f4089] text-white py-4 rounded-[20px] text-[15px] font-bold flex justify-center items-center gap-2 active:scale-[0.98] transition shadow-md"
+                >
+                  <Download size={18} /> Install App
+                </button>
+                {showIOSGuide && (
+                  <div className="mt-3 bg-white rounded-[20px] border border-gray-100 shadow-sm p-5 space-y-3">
+                    <p className="text-sm font-bold text-gray-700 mb-1">How to install on iPhone:</p>
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 bg-[#E3EBFB] rounded-lg flex items-center justify-center shrink-0">
+                        <Share size={14} className="text-[#0f4089]" />
+                      </div>
+                      <p className="text-sm text-gray-600">Tap the <span className="font-bold">Share</span> button at the bottom of Safari</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 bg-[#E3EBFB] rounded-lg flex items-center justify-center shrink-0">
+                        <span className="text-[#0f4089] font-bold text-sm">+</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Tap <span className="font-bold">"Add to Home Screen"</span></p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 bg-[#E3EBFB] rounded-lg flex items-center justify-center shrink-0">
+                        <span className="text-[#0f4089] font-bold text-sm">✓</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Tap <span className="font-bold">"Add"</span> to install</p>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
         <button onClick={logout} className="w-full bg-red-50 border border-red-100 text-red-600 py-4 rounded-[20px] text-[15px] font-bold hover:bg-red-100 transition flex justify-center items-center gap-2 active:scale-[0.98]">
           <LogOut size={18} strokeWidth={2.5} /> Log Out
