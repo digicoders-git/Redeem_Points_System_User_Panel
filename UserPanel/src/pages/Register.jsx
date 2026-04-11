@@ -1,14 +1,21 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { Gift } from "lucide-react";
+import { Gift, User, Phone, Lock, Eye, EyeOff } from "lucide-react";
 import Swal from "sweetalert2";
 
-export default function Register({ onSwitch }) {
+export default function Register() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", mobile: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
+    if (form.mobile.length !== 10) {
+      Swal.fire({ icon: "error", title: "Invalid Mobile", text: "Mobile number must be exactly 10 digits" });
+      return;
+    }
     setLoading(true);
     try {
       const { data } = await api.post("/users/register", form);
@@ -21,7 +28,7 @@ export default function Register({ onSwitch }) {
         timer: 1500,
         showConfirmButton: false,
       });
-      window.location.reload();
+      navigate("/bills", { replace: true });
     } catch (e) {
       Swal.fire({
         icon: "error",
@@ -34,53 +41,118 @@ export default function Register({ onSwitch }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center px-4">
-      <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-8">
-        <div className="text-center mb-6 flex flex-col items-center">
-          <div className="text-violet-600 mb-3"><Gift size={48} /></div>
-          <h2 className="text-2xl font-bold text-gray-800">Create Account</h2>
-          <p className="text-gray-500 text-sm mt-1">Join our rewards program</p>
-        </div>
+    <>
+      {/* Fixed Background for 100% Screen Coverage */}
+      <div
+        className="fixed inset-0 z-0 bg-[#8b38df]"
+        style={{
+          backgroundImage: "url('/magical_bg.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      ></div>
 
-        <form onSubmit={submit} className="space-y-4">
-          <input
-            placeholder="Full Name"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-          />
-          <input
-            placeholder="Mobile Number"
-            value={form.mobile}
-            onChange={(e) => setForm({ ...form, mobile: e.target.value })}
-            required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            required
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 rounded-xl transition disabled:opacity-60"
+      <div
+        className="min-h-[100dvh] w-full flex flex-col items-center justify-center px-4 relative z-10 overflow-hidden"
+        style={{ fontFamily: "'Inter', sans-serif" }}
+      >
+        <h1 className="text-white font-extrabold tracking-widest text-[16px] mb-8 opacity-95 drop-shadow-md">CS PARTNER APP</h1>
+
+        <div
+          className="z-10 w-full max-w-[340px] rounded-[1.8rem] p-7 pt-12 relative"
+          style={{
+            background: 'linear-gradient(180deg, #fefbfe 0%, #f4e8ff 100%)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4), inset 0 2px 10px rgba(255,255,255,1)'
+          }}
+        >
+          <div
+            className="absolute -top-7 left-1/2 -translate-x-1/2 rounded-[1rem] p-3 shadow-xl"
+            style={{ background: 'linear-gradient(180deg, #e4c1ff 0%, #ca8fff 100%)' }}
           >
-            {loading ? "Registering..." : "Register"}
-          </button>
-        </form>
+            <Gift size={32} color="#58169e" fill="#d19fff" strokeWidth={1.5} />
+          </div>
 
-        <p className="text-center text-sm text-gray-500 mt-5">
-          Already have an account?{" "}
-          <span onClick={onSwitch} className="text-violet-600 font-semibold cursor-pointer hover:underline">
-            Login
-          </span>
-        </p>
+          <div className="text-center mb-6 mt-1">
+            <h2 className="text-[23px] font-semibold text-[#3a1554] leading-snug tracking-tight mb-[6px]">
+              Shop. Earn Points.<br />Get Rewards. 🎁
+            </h2>
+            <p className="text-[#846b94] text-[13px] font-medium tracking-wide">Get reward points on every purchase</p>
+          </div>
+
+          <form onSubmit={submit} className="space-y-3">
+            <div className="flex items-center bg-[#f1e5fb] rounded-[14px] px-4 py-[13px] shadow-[inset_0_1px_3px_rgba(0,0,0,0.02)]">
+              <User className="h-5 w-5 text-[#a479cc] mr-[10px]" />
+              <input
+                placeholder="Full Name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+                className="bg-transparent w-full text-[14px] text-[#4a1c6a] placeholder-[#b28ece] outline-none font-medium"
+              />
+            </div>
+
+            <div className="flex items-center bg-[#f1e5fb] rounded-[14px] px-4 py-[13px] shadow-[inset_0_1px_3px_rgba(0,0,0,0.02)]">
+              <Phone className="h-5 w-5 text-[#a479cc] mr-[10px]" />
+              <input
+                placeholder="Mobile Number"
+                value={form.mobile}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                  setForm({ ...form, mobile: val });
+                }}
+                inputMode="numeric"
+                maxLength={10}
+                required
+                className="bg-transparent w-full text-[14px] text-[#4a1c6a] placeholder-[#b28ece] outline-none font-medium"
+              />
+            </div>
+
+            <div className="flex items-center bg-[#f1e5fb] rounded-[14px] px-4 py-[13px] shadow-[inset_0_1px_3px_rgba(0,0,0,0.02)]">
+              <Lock className="h-5 w-5 text-[#a479cc] mr-[10px] shrink-0" />
+              <input
+                type={showPwd ? "text" : "password"}
+                placeholder="Password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required
+                className="bg-transparent w-full text-[14px] text-[#4a1c6a] placeholder-[#b28ece] outline-none font-medium"
+              />
+              <button type="button" onClick={() => setShowPwd(!showPwd)} className="ml-2 text-[#a479cc] shrink-0">
+                {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+            <div className="pt-[14px]">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full text-white font-bold py-[14px] rounded-[14px] flex justify-center items-center gap-2 text-[16px] active:scale-[0.98] transition-transform"
+                style={{
+                  background: 'linear-gradient(90deg, #b04bf6 0%, #e852fc 50%, #b04bf6 100%)',
+                  boxShadow: '0 6px 15px rgba(232, 82, 252, 0.3), inset 0 2px 5px rgba(255,255,255,0.3)',
+                  backgroundSize: '200% auto'
+                }}
+              >
+                🎁 {loading ? "Registering..." : "Start Earning"} 🎁
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-5 text-center">
+            <p className="text-[12.5px] text-[#9375a8] font-medium tracking-wide">100% Secure | No Spam</p>
+
+            <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#e0c4f4] to-transparent my-[14px]"></div>
+
+            <p className="text-[14px] text-[#8e6ba1] font-small tracking-wide">
+              Already have account?{" "}
+              <span onClick={() => navigate("/login")} className="text-[#a536eb] font-medium cursor-pointer hover:underline">
+                Login
+              </span>
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

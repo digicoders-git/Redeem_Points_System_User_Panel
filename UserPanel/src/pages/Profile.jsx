@@ -1,20 +1,64 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { Coins, LogOut, Loader2, User } from "lucide-react";
+import { Coins, LogOut, Loader2, User, Camera, ChevronDown, ChevronUp, Shield, Download, Share } from "lucide-react";
 import Swal from "sweetalert2";
 
+const getTier = (points) => {
+  if (points >= 5000) return { label: "Platinum", color: "bg-cyan-50 text-cyan-600 border-cyan-200", emoji: "💎" };
+  if (points >= 2000) return { label: "Gold", color: "bg-yellow-50 text-yellow-600 border-yellow-200", emoji: "🥇" };
+  if (points >= 500) return { label: "Silver", color: "bg-gray-100 text-gray-600 border-gray-300", emoji: "🥈" };
+  return { label: "Bronze", color: "bg-orange-50 text-orange-500 border-orange-200", emoji: "🥉" };
+};
+
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+
 export default function Profile() {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [edit, setEdit] = useState(false);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [terms, setTerms] = useState([]);
+  const [installPrompt, setInstallPrompt] = useState(() => window.__installPrompt || null);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
 
   useEffect(() => {
     api.get("/users/profile").then(({ data }) => {
       setProfile(data.user);
-      setForm({ name: data.user.name, mobile: data.user.mobile });
+      setForm({ name: data.user.name, mobile: data.user.mobile, profilePhoto: data.user.profilePhoto || "" });
     });
+    api.get("/terms").then(({ data }) => setTerms(data.terms || []));
+    // Listen for prompt in case it fires after mount
+    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); window.__installPrompt = e; };
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => setInstallPrompt(null));
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
+
+  const handleAndroidInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === "accepted") { setInstallPrompt(null); window.__installPrompt = null; }
+  };
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        Swal.fire({ icon: "error", title: "File too large", text: "Image must be under 2MB" });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm({ ...form, profilePhoto: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const save = async (e) => {
     e.preventDefault();
@@ -44,14 +88,8 @@ export default function Profile() {
     if (!result.isConfirmed) return;
     await api.post("/users/logout").catch(() => {});
     localStorage.clear();
-    await Swal.fire({
-      icon: "success",
-      title: "Logged Out!",
-      text: "You have been logged out successfully.",
-      timer: 1500,
-      showConfirmButton: false,
-    });
-    window.location.reload();
+    await Swal.fire({ icon: "success", title: "Logged Out!", text: "You have been logged out successfully.", timer: 1500, showConfirmButton: false });
+    navigate("/login", { replace: true });
   };
 
   if (!profile)
@@ -79,18 +117,51 @@ export default function Profile() {
 
       <div className="px-5 -mt-16 relative z-20">
         <div className="bg-white rounded-[32px] p-6 flex flex-col items-center shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 mb-6">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#0f4089] to-[#1a4187] flex items-center justify-center text-white text-4xl font-extrabold shadow-lg shadow-blue-900/20 mb-4 border-4 border-white transform -translate-y-12">
-            {profile.name?.[0]?.toUpperCase()}
+          <div className="relative transform -translate-y-12 mb-4">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#0f4089] to-[#1a4187] flex items-center justify-center text-white text-4xl font-extrabold shadow-lg shadow-blue-900/20 border-4 border-white overflow-hidden">
+              {(edit ? form.profilePhoto : profile.profilePhoto) ? (
+                <img
+                  src={edit ? form.profilePhoto : profile.profilePhoto}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                profile.name?.[0]?.toUpperCase()
+              )}
+            </div>
+            {edit && (
+              <label className="absolute bottom-0 right-0 bg-[#f97316] p-2 rounded-full text-white cursor-pointer shadow-md border-2 border-white hover:bg-[#eb6a10] transition-colors">
+                <Camera size={16} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                />
+              </label>
+            )}
           </div>
           
-          <div className="text-center -mt-8">
+          <div className="text-center -mt-8 w-full">
             <h2 className="text-2xl font-bold text-gray-900 mb-1">{profile.name}</h2>
-            <p className="text-gray-500 font-medium text-[15px] mb-4">{profile.email}</p>
-            
-            <div className="inline-flex items-center gap-2 bg-[#F5F7FA] text-[#0f4089] font-bold px-6 py-2.5 rounded-2xl border border-gray-100 shadow-inner">
-              <Coins size={20} className="text-[#f97316]" /> 
-              <span className="text-lg">{profile.walletPoints || 0}</span> 
-              <span className="text-gray-500 text-sm font-semibold">Points</span>
+            <p className="text-gray-500 font-medium text-[15px] mb-3">{profile.email}</p>
+
+            {/* Tier badge — separate line */}
+            {(() => { const tier = getTier(profile.walletPoints || 0); return (
+              <div className="flex justify-center mb-3">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${tier.color}`}>
+                  {tier.emoji} {tier.label} Member
+                </span>
+              </div>
+            ); })()}
+
+            {/* Points — separate line */}
+            <div className="flex justify-center">
+              <div className="inline-flex items-center gap-2 bg-[#F5F7FA] text-[#0f4089] font-bold px-6 py-2.5 rounded-2xl border border-gray-100 shadow-inner">
+                <Coins size={20} className="text-[#f97316]" />
+                <span className="text-lg">{profile.walletPoints || 0}</span>
+                <span className="text-gray-500 text-sm font-semibold">Points</span>
+              </div>
             </div>
           </div>
         </div>
@@ -138,10 +209,95 @@ export default function Profile() {
               </div>
             </div>
             <div className="p-5 pt-0 mt-2">
-              <button onClick={() => setEdit(true)} className="w-full bg-[#E3EBFB] text-[#0f4089] border border-[#0f4089]/10 py-3.5 rounded-xl text-[15px] font-bold hover:bg-[#d0ddf5] transition active:scale-[0.98]">
+              <button onClick={() => {
+                setForm({
+                  name: profile.name,
+                  mobile: profile.mobile,
+                  profilePhoto: profile.profilePhoto || "",
+                });
+                setEdit(true);
+              }} className="w-full bg-[#E3EBFB] text-[#0f4089] border border-[#0f4089]/10 py-3.5 rounded-xl text-[15px] font-bold hover:bg-[#d0ddf5] transition active:scale-[0.98]">
                 Edit Profile Info
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Terms & Conditions */}
+        <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 mb-4 overflow-hidden">
+          <button
+            onClick={() => setShowTerms(!showTerms)}
+            className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-[#E3EBFB] rounded-xl flex items-center justify-center">
+                <Shield size={16} className="text-[#0f4089]" />
+              </div>
+              <span className="font-bold text-gray-800 text-[15px]">Terms & Conditions</span>
+            </div>
+            {showTerms ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+          </button>
+          {showTerms && (
+            <div className="px-5 pb-5 space-y-3">
+              {terms.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-2">No terms available</p>
+              )}
+              {terms.map((t, i) => (
+                <div key={t._id} className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-[#E3EBFB] text-[#0f4089] text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                  <p className="text-sm text-gray-600 leading-relaxed">{t.text}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Install App Button */}
+        {!isStandalone() && (
+          <div className="mb-4">
+            {/* Android */}
+            {installPrompt && (
+              <button
+                onClick={handleAndroidInstall}
+                className="w-full bg-[#0f4089] text-white py-4 rounded-[20px] text-[15px] font-bold flex justify-center items-center gap-2 active:scale-[0.98] transition shadow-md mb-3"
+              >
+                <Download size={18} /> Install App
+              </button>
+            )}
+            {/* iOS */}
+            {isIOS() && (
+              <>
+                <button
+                  onClick={() => setShowIOSGuide(!showIOSGuide)}
+                  className="w-full bg-[#0f4089] text-white py-4 rounded-[20px] text-[15px] font-bold flex justify-center items-center gap-2 active:scale-[0.98] transition shadow-md"
+                >
+                  <Download size={18} /> Install App
+                </button>
+                {showIOSGuide && (
+                  <div className="mt-3 bg-white rounded-[20px] border border-gray-100 shadow-sm p-5 space-y-3">
+                    <p className="text-sm font-bold text-gray-700 mb-1">How to install on iPhone:</p>
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 bg-[#E3EBFB] rounded-lg flex items-center justify-center shrink-0">
+                        <Share size={14} className="text-[#0f4089]" />
+                      </div>
+                      <p className="text-sm text-gray-600">Tap the <span className="font-bold">Share</span> button at the bottom of Safari</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 bg-[#E3EBFB] rounded-lg flex items-center justify-center shrink-0">
+                        <span className="text-[#0f4089] font-bold text-sm">+</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Tap <span className="font-bold">"Add to Home Screen"</span></p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 bg-[#E3EBFB] rounded-lg flex items-center justify-center shrink-0">
+                        <span className="text-[#0f4089] font-bold text-sm">✓</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Tap <span className="font-bold">"Add"</span> to install</p>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
 
