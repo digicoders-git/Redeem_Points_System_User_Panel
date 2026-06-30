@@ -1,0 +1,11 @@
+{
+  "installCommand": "cd UserPanel && npm install",
+  "buildCommand": "cd UserPanel && npm run build",
+  "outputDirectory": "UserPanel/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
